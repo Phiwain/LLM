@@ -1,6 +1,12 @@
 /checkpoints/
 /data/
 /tokenizer/
+/src/
+/11B-a100/
+/config.yaml
+/requirements.txt
+/run_all.sh
+/setup_runpod.sh
 __pycache__/
 *.pyc
 .DS_Store
