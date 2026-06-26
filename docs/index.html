@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhiwAIn — LLM MoE 11B bilingue code + FR/EN</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #12121a;
+    --bg3: #1a1a2e;
+    --border: #2a2a3e;
+    --text: #e4e4f0;
+    --text2: #8888a0;
+    --accent: #6c5ce7;
+    --accent2: #a29bfe;
+    --green: #00cec9;
+    --orange: #fd79a8;
+    --blue: #74b9ff;
+    --gradient: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  .cursor-glow {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(108,92,231,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    transform: translate(-50%, -50%);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-weight: 800;
+    font-size: 1.3rem;
+  }
+
+  .logo .prefix { color: var(--text2); }
+  .logo .mid { color: var(--text2); }
+  .logo .ai { color: var(--accent2); }
+  .logo .suffix { color: var(--text2); }
+  .logo .tag { color: var(--text2); font-weight: 400; font-size: 0.8rem; margin-left: 4px; }
+
+  .logo .ai-glow {
+    display: inline-block;
+    text-shadow: 0 0 20px rgba(108,92,231,0.5), 0 0 40px rgba(108,92,231,0.2);
+  }
+
+  .nav-links { display: flex; gap: 28px; align-items: center; }
+
+  .nav-links a {
+    color: var(--text2);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
+  .badge {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--green);
+  }
+
+  .hero {
+    padding: 100px 0 80px;
+    text-align: center;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: rgba(108,92,231,0.15);
+    border: 1px solid rgba(108,92,231,0.3);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent2);
+    margin-bottom: 24px;
+  }
+
+  .hero h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 .phi { color: #fff; }
+  .hero h1 .ai-hero { color: var(--accent2); }
+  .hero h1 .wain-hero { color: #fff; }
+  .hero h1 .rest { color: #fff; }
+  .hero h1 .suffix { background: linear-gradient(135deg, #fff 30%, #a29bfe 70%, #6c5ce7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  .hero p {
+    font-size: 1.15rem;
+    color: var(--text2);
+    max-width: 680px;
+    margin: 0 auto 36px;
+  }
+
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    flex-wrap: wrap;
+  }
+
+  .hero-stat { text-align: center; }
+  .hero-stat .num { font-size: 2rem; font-weight: 700; color: var(--text); }
+  .hero-stat .label { font-size: 0.8rem; color: var(--text2); margin-top: 4px; }
+  .hero-stat .num.accent { color: var(--accent2); }
+  .hero-stat .num.green { color: var(--green); }
+  .hero-stat .num.orange { color: var(--orange); }
+
+  .section { padding: 80px 0; border-top: 1px solid var(--border); }
+  .section-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 12px; }
+  .section-sub { color: var(--text2); font-size: 1rem; margin-bottom: 48px; max-width: 600px; }
+
+  .arch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+  }
+
+  .arch-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+
+  .arch-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .arch-card .icon { font-size: 1.8rem; margin-bottom: 12px; }
+  .arch-card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 8px; }
+  .arch-card p { font-size: 0.88rem; color: var(--text2); line-height: 1.5; }
+  .arch-card .value { font-size: 1.5rem; font-weight: 700; color: var(--accent2); margin-bottom: 4px; }
+
+  .moe-diagram {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    margin-top: 32px;
+    text-align: center;
+  }
+
+  .moe-diagram h3 { font-size: 1.1rem; margin-bottom: 24px; color: var(--text2); font-weight: 500; }
+
+  .moe-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .moe-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    min-width: 80px;
+  }
+
+  .moe-box.highlight { border-color: var(--accent); background: rgba(108,92,231,0.1); }
+  .moe-arrow { color: var(--text2); font-size: 1.2rem; }
+
+  .moe-experts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
+  .moe-expert {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text2);
+    transition: all 0.3s;
+  }
+
+  .moe-expert.active {
+    border-color: var(--accent);
+    background: rgba(108,92,231,0.15);
+    color: var(--accent2);
+    box-shadow: 0 0 20px rgba(108,92,231,0.15);
+  }
+
+  .data-bar-container {
+    display: flex;
+    height: 32px;
+    border-radius: 100px;
+    overflow: hidden;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .data-bar-seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: flex 0.5s;
+    white-space: nowrap;
+    padding: 0 8px;
+  }
+
+  .data-bar-seg.web { background: #6c5ce7; }
+  .data-bar-seg.sys { background: #0984e3; }
+  .data-bar-seg.base { background: #00cec9; }
+  .data-bar-seg.distill { background: #fd79a8; }
+
+  .data-legend { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+  .data-legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text2); }
+  .data-legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 32px;
+    font-size: 0.88rem;
+  }
+
+  .data-table th {
+    text-align: left;
+    padding: 10px 16px;
+    color: var(--text2);
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .data-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table .highlight { color: var(--accent2); font-weight: 600; }
+
+  .train-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+  .train-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .train-card .phase {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text2);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .train-card h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 16px; }
+
+  .train-card .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .status.running { background: rgba(0, 206, 201, 0.12); color: var(--green); border: 1px solid rgba(0, 206, 201, 0.25); }
+  .status.ready { background: rgba(108, 92, 231, 0.12); color: var(--accent2); border: 1px solid rgba(108, 92, 231, 0.25); }
+
+  .status .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .train-metric {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.88rem;
+  }
+
+  .train-metric:last-child { border-bottom: none; }
+  .train-metric .label { color: var(--text2); }
+  .train-metric .val { font-weight: 600; }
+
+  .why-list { display: grid; gap: 20px; }
+
+  .why-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .why-item .num { font-size: 1.5rem; font-weight: 800; color: var(--accent); line-height: 1; min-width: 32px; }
+  .why-item h4 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+  .why-item p { font-size: 0.88rem; color: var(--text2); }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 0;
+    text-align: center;
+    color: var(--text2);
+    font-size: 0.85rem;
+  }
+
+  footer a { color: var(--accent2); text-decoration: none; }
+
+  /* CONTACT */
+  .contact-form {
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .contact-form .field-group {
+    margin-bottom: 20px;
+  }
+
+  .contact-form label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 6px;
+  }
+
+  .contact-form input,
+  .contact-form textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+    text-align: center;
+  }
+
+  .contact-form input:focus,
+  .contact-form textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .contact-form textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  .contact-form .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: var(--gradient);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .contact-form .btn-wrap {
+    text-align: center;
+  }
+
+  .contact-form .btn:hover { opacity: 0.85; }
+
+  .contact-form .btn .arrow { font-size: 1.1rem; }
+
+  .contact-header {
+    text-align: center;
+  }
+
+  .contact-header .section-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .contact-header .section-sub {
+    color: var(--text2);
+    font-size: 1rem;
+    margin-bottom: 48px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .contact-email-link {
+    display: inline-block;
+    margin-top: 16px;
+    color: var(--accent2);
+    text-decoration: none;
+    font-size: 0.88rem;
+  }
+
+  .contact-email-link:hover { text-decoration: underline; }
+
+  .name-breakdown {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    letter-spacing: 4px;
+  }
+
+  .name-breakdown .ai-letter {
+    color: var(--accent2);
+    text-shadow: 0 0 30px rgba(108,92,231,0.6), 0 0 60px rgba(108,92,231,0.3);
+    animation: aipulse 3s ease-in-out infinite;
+  }
+
+  .name-breakdown .other-letter { color: #fff; }
+
+  @keyframes aipulse {
+    0%, 100% { text-shadow: 0 0 20px rgba(108,92,231,0.4), 0 0 40px rgba(108,92,231,0.2); }
+    50% { text-shadow: 0 0 40px rgba(108,92,231,0.8), 0 0 80px rgba(108,92,231,0.4); }
+  }
+
+  .tagline-ai {
+    text-align: center;
+    color: var(--text2);
+    font-size: 0.9rem;
+    margin-bottom: 32px;
+  }
+
+  .tagline-ai strong { color: var(--accent2); }
+
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 2.2rem; }
+    .hero-stats { gap: 24px; }
+    .train-grid { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .moe-flow { flex-direction: column; }
+    .name-breakdown { font-size: 1.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor-glow" id="glow"></div>
+
+<nav class="container">
+  <div class="logo">
+    <span class="prefix">Ph</span><span class="mid">iw</span><span class="ai ai-glow">AI</span><span class="suffix">n</span>
+    <span class="tag">/ 11B MoE</span>
+  </div>
+  <div class="nav-links">
+    <a href="#arch">Architecture</a>
+    <a href="#data">Données</a>
+    <a href="#train">Entraînement</a>
+    <a href="#why">Pourquoi MoE</a>
+    <a href="#contact">Contact</a>
+    <span class="badge">● bilingue EN/FR</span>
+  </div>
+</nav>
+
+<section class="hero container">
+  <div class="hero-badge">⚡ Mixture of Experts — 1 GPU</div>
+
+  <div class="name-breakdown">
+    <span class="other-letter">Ph</span>
+    <span class="other-letter">iw</span>
+    <span class="ai-letter">AI</span>
+    <span class="other-letter">n</span>
+  </div>
+
+  <div class="tagline-ai">
+    Le <strong>AI</strong> est dans le nom — et dans le code<br>
+    <span style="font-size: 0.8rem; color: var(--text2);">PhiwAIn se prononce "Fiw-AI-in"</span>
+  </div>
+
+  <h1>
+    <span class="phi">11B paramètres</span><br>
+    <span class="ai-hero">1.3B actifs</span> <span class="rest">par token</span>
+  </h1>
+  <p>
+    Un LLM bilingue code + FR/EN, pensé pour un seul A100 80GB.
+    L'architecture MoE nous donne <strong>8&times; la capacité</strong> au même coût de calcul.
+  </p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="num accent">11B</div>
+      <div class="label">Paramètres totaux</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num green">1.3B</div>
+      <div class="label">Actifs / token</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">8.4&times;</div>
+      <div class="label">Ratio de capacité</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num orange">16</div>
+      <div class="label">Experts</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num green">10B</div>
+      <div class="label">Tokens d'entraînement</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="arch">
+  <div class="container">
+    <h2 class="section-title">Architecture</h2>
+    <p class="section-sub">MoE sparse — 16 experts, top-2 routing, RoPE, Flash Attention, RMSNorm. Le tout tient sur un seul A100 80GB.</p>
+
+    <div class="arch-grid">
+      <div class="arch-card">
+        <div class="value">28</div>
+        <h3>Couches Transformer</h3>
+        <p>Chaque couche a un MoE FFN (top-2 sur 16 experts) + self-attention.</p>
+      </div>
+      <div class="arch-card">
+        <div class="value">d=1280</div>
+        <h3>Dimension cachée</h3>
+        <p>Largeur adaptée à l'efficacité MoE sur la mémoire A100.</p>
+      </div>
+      <div class="arch-card">
+        <div class="value">h=5120</div>
+        <h3>Dimension FFN</h3>
+        <p>Chaque expert a un facteur d'expansion 4&times; pour des représentations riches.</p>
+      </div>
+      <div class="arch-card">
+        <div class="value">16</div>
+        <h3>Têtes d'attention</h3>
+        <p>Avec RoPE positional encoding et Flash Attention via PyTorch SDPA.</p>
+      </div>
+    </div>
+
+    <div class="moe-diagram">
+      <h3>Comment le routage MoE fonctionne par token</h3>
+      <div class="moe-flow">
+        <div class="moe-box">Entrée</div>
+        <span class="moe-arrow">→</span>
+        <div class="moe-box">Routeur</div>
+        <span class="moe-arrow">→</span>
+        <div class="moe-experts">
+          <div class="moe-expert">E1</div>
+          <div class="moe-expert">E2</div>
+          <div class="moe-expert active">E3</div>
+          <div class="moe-expert">E4</div>
+          <div class="moe-expert">E5</div>
+          <div class="moe-expert">E6</div>
+          <div class="moe-expert active">E7</div>
+          <div class="moe-expert">E8</div>
+          <div class="moe-expert">E9</div>
+          <div class="moe-expert">E10</div>
+          <div class="moe-expert">E11</div>
+          <div class="moe-expert">E12</div>
+          <div class="moe-expert">E13</div>
+          <div class="moe-expert">E14</div>
+          <div class="moe-expert">E15</div>
+          <div class="moe-expert">E16</div>
+        </div>
+        <span class="moe-arrow">→</span>
+        <div class="moe-box highlight">Sortie</div>
+      </div>
+      <p style="margin-top: 16px; color: var(--text2); font-size: 0.82rem;">
+        Seulement <strong style="color: var(--accent2);">2 experts</strong> s'activent par token — les 14 autres sont inactifs.
+        On obtient <strong style="color: var(--accent2);">8&times;</strong> plus de paramètres au même coût d'inférence.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="data">
+  <div class="container">
+    <h2 class="section-title">Données d'entraînement</h2>
+    <p class="section-sub">Mix orienté code bilingue — 94% code (19% web), 6% FR/EN, &lt;1% distillation.</p>
+
+    <div class="data-bar-container">
+      <div class="data-bar-seg web" style="flex: 1.8">19% Web</div>
+      <div class="data-bar-seg sys" style="flex: 7.2">75% Code système</div>
+      <div class="data-bar-seg base" style="flex: 0.55">6% FR/EN</div>
+      <div class="data-bar-seg distill" style="flex: 0.03">&lt;1%</div>
+    </div>
+
+    <div class="data-legend">
+      <div class="data-legend-item"><div class="data-legend-dot" style="background: #6c5ce7;"></div>Web (HTML, CSS, JS, PHP)</div>
+      <div class="data-legend-item"><div class="data-legend-dot" style="background: #0984e3;"></div>Code système (Python, Go, Rust, C++)</div>
+      <div class="data-legend-item"><div class="data-legend-dot" style="background: #00cec9;"></div>Base FR/EN (Wikipedia)</div>
+      <div class="data-legend-item"><div class="data-legend-dot" style="background: #fd79a8;"></div>Distillation (Claude, GLM)</div>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>Source</th><th>Docs</th><th>Tokens</th><th>Type</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>GitHub Code (Python, Go, Rust, C++, Java, Shell, SQL)</td><td>12M</td><td class="highlight">7.2B</td><td>Code système</td></tr>
+        <tr><td>Web Dev (HTML, CSS, JS, TS, PHP)</td><td>3M</td><td class="highlight">1.8B</td><td>Code web</td></tr>
+        <tr><td>Wikipedia EN</td><td>500k</td><td>0.30B</td><td>Base EN</td></tr>
+        <tr><td>Wikipedia FR</td><td>500k</td><td>0.25B</td><td>Base FR</td></tr>
+        <tr><td>Distillation (Fable5, Mythos, GLM-5.2, CodeAlpaca)</td><td>~46k</td><td>~0.03B</td><td>Distillation</td></tr>
+        <tr style="border-top: 2px solid var(--border);">
+          <td class="highlight"><strong>Total</strong></td>
+          <td class="highlight"><strong>~16M</strong></td>
+          <td class="highlight"><strong>9.6B</strong></td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="train">
+  <div class="container">
+    <h2 class="section-title">Statut de l'entraînement</h2>
+    <p class="section-sub">Deux phases : preuve de concept 1B MoE, puis le full 11B sur un seul A100 80GB.</p>
+
+    <div class="train-grid">
+      <div class="train-card">
+        <div class="phase">Phase 1 — Preuve de concept</div>
+        <h3>MoE 1B (959M)</h3>
+        <div class="status running"><span class="dot"></span> En cours sur A100</div>
+        <div class="train-metric"><span class="label">Step</span><span class="val">2 447 / 50 000</span></div>
+        <div class="train-metric"><span class="label">Train Loss</span><span class="val">3.76</span></div>
+        <div class="train-metric"><span class="label">Eval PPL</span><span class="val">45 (step 2000)</span></div>
+        <div class="train-metric"><span class="label">Débit</span><span class="val">~43k tok/s</span></div>
+        <div class="train-metric"><span class="label">Temps restant</span><span class="val">~18h</span></div>
+      </div>
+
+      <div class="train-card">
+        <div class="phase">Phase 2 — Passage à l'échelle</div>
+        <h3>MoE 11B (9B totaux)</h3>
+        <div class="status ready">● Prêt à lancer</div>
+        <div class="train-metric"><span class="label">Architecture</span><span class="val">28L · d=1280 · 16 experts</span></div>
+        <div class="train-metric"><span class="label">Actifs / token</span><span class="val">1.3B</span></div>
+        <div class="train-metric"><span class="label">Tokens d'entraînement</span><span class="val">~10B</span></div>
+        <div class="train-metric"><span class="label">Temps estimé</span><span class="val">~166h</span></div>
+        <div class="train-metric"><span class="label">Coût estimé</span><span class="val">~231 $ (spot)</span></div>
+        <div class="train-metric"><span class="label">Optimiseur</span><span class="val">8-bit AdamW (bitsandbytes)</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="why">
+  <div class="container">
+    <h2 class="section-title">Pourquoi Mixture of Experts ?</h2>
+    <p class="section-sub">MoE est l'architecture derrière DeepSeek V3, Mixtral 8×7B et GPT-4. Voici pourquoi ça change tout à notre échelle.</p>
+
+    <div class="why-list">
+      <div class="why-item">
+        <div class="num">01</div>
+        <div>
+          <h4>Plus de capacité au même coût</h4>
+          <p>Avec 16 experts et du top-2 routing, on stocke 11B paramètres mais on ne calcule que 1.3B par token. Soit 8.4× plus de paramètres qu'un dense au même budget FLOP.</p>
+        </div>
+      </div>
+      <div class="why-item">
+        <div class="num">02</div>
+        <div>
+          <h4>Spécialisation naturelle des experts</h4>
+          <p>Les experts se spécialisent spontanément — syntaxe, templates web, raisonnement, langues — sans supervision explicite.</p>
+        </div>
+      </div>
+      <div class="why-item">
+        <div class="num">03</div>
+        <div>
+          <h4>Ça tient sur 1× A100 80GB</h4>
+          <p>Un dense 11B ne tiendrait pas sur un seul A100. L'activation sparse du MoE permet d'entraîner un modèle à capacité 11B sur du hardware grand public.</p>
+        </div>
+      </div>
+      <div class="why-item">
+        <div class="num">04</div>
+        <div>
+          <h4>Une approche validée par l'industrie</h4>
+          <p>DeepSeek V3 (671B), Mixtral 8×7B (47B), GPT-4 — tous utilisent du MoE. On applique le même principe à notre échelle.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="section" id="contact">
+  <div class="container">
+    <div class="contact-header">
+      <h2 class="section-title">Contact</h2>
+      <p class="section-sub">Une question, une idée, un coup de main ? Écris-moi directement.</p>
+    </div>
+
+    <div class="contact-form">
+      <form action="mailto:Seb5554@proton.me" method="post" enctype="text/plain">
+        <div class="field-group">
+          <label for="name">Ton nom</label>
+          <input type="text" name="name" id="name" placeholder="ex: Jean Dupont" required>
+        </div>
+        <div class="field-group">
+          <label for="email">Ton email</label>
+          <input type="email" name="email" id="email" placeholder="ex: jean@exemple.fr" required>
+        </div>
+        <div class="field-group">
+          <label for="message">Message</label>
+          <textarea name="message" id="message" placeholder="Dis-moi tout..." required></textarea>
+        </div>
+        <div class="btn-wrap">
+          <button type="submit" class="btn">
+            Envoyer <span class="arrow">→</span>
+          </button>
+        </div>
+      </form>
+      <p style="text-align: center;">
+        <a href="mailto:Seb5554@proton.me" class="contact-email-link">
+          ✉ Seb5554@proton.me
+        </a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<footer class="container">
+  <p>
+    Construit avec PyTorch · Flash Attention · bitsandbytes · SentencePiece<br>
+    <span style="color: var(--text2);">Ph</span><span style="color: var(--text2);">iw</span><span style="color: var(--accent2);">AI</span><span style="color: var(--text2);">n</span>
+    — Entraîné sur <a href="#">RunPod A100 80GB</a> · 1,39 $/h spot
+  </p>
+</footer>
+
+<script>
+  document.addEventListener('mousemove', e => {
+    document.getElementById('glow').style.left = e.clientX + 'px';
+    document.getElementById('glow').style.top = e.clientY + 'px';
+  });
+
+  setInterval(() => {
+    document.querySelectorAll('.moe-expert').forEach(el => {
+      el.classList.toggle('active', Math.random() > 0.8);
+    });
+  }, 1200);
+</script>
+
+</body>
+</html>

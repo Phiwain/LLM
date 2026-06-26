@@ -1,0 +1,15 @@
+# MoE LLM ~1B (EN/FR) — A100 / CUDA dependencies
+# Install: pip install -r requirements.txt
+# Requires: PyTorch with CUDA 12.1+ (pre-installed on RunPod PyTorch templates)
+
+torch>=2.4
+transformers>=4.44
+datasets>=4.0
+sentencepiece>=0.2.0
+tokenizers>=0.19
+accelerate>=0.33
+safetensors>=0.4
+tqdm>=4.66
+pyyaml>=6.0
+numpy>=1.26
+wandb>=0.18
