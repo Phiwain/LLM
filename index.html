@@ -802,10 +802,12 @@
     document.getElementById('glow').style.top = e.clientY + 'px';
   });
 
+  // Exactly 2 experts active at a time
   setInterval(() => {
-    document.querySelectorAll('.moe-expert').forEach(el => {
-      el.classList.toggle('active', Math.random() > 0.8);
-    });
+    document.querySelectorAll('.moe-expert').forEach(el => el.classList.remove('active'));
+    const idx = new Set();
+    while (idx.size < 2) idx.add(Math.floor(Math.random() * 16));
+    idx.forEach(i => document.querySelectorAll('.moe-expert')[i].classList.add('active'));
   }, 1200);
 </script>
 
