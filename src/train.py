@@ -100,13 +100,34 @@ def train(cfg: Config):
         print(f"  Loaded step {start_step}")
 
     # Optimizer
-    optimizer = torch.optim.AdamW(
-        model.parameters(),
-        lr=tcfg.learning_rate,
-        weight_decay=tcfg.weight_decay,
-        betas=(0.9, 0.95),
-        fused=True if device.type == "cuda" else False,
-    )
+    use_8bit = getattr(tcfg, "use_8bit_optimizer", False)
+    if use_8bit and device.type == "cuda":
+        try:
+            import bitsandbytes as bnb
+            optimizer = bnb.optim.AdamW8bit(
+                model.parameters(),
+                lr=tcfg.learning_rate,
+                weight_decay=tcfg.weight_decay,
+                betas=(0.9, 0.95),
+            )
+            print("  Using 8-bit AdamW (bitsandbytes)")
+        except ImportError:
+            print("  bitsandbytes not available, using standard AdamW")
+            optimizer = torch.optim.AdamW(
+                model.parameters(),
+                lr=tcfg.learning_rate,
+                weight_decay=tcfg.weight_decay,
+                betas=(0.9, 0.95),
+                fused=True if device.type == "cuda" else False,
+            )
+    else:
+        optimizer = torch.optim.AdamW(
+            model.parameters(),
+            lr=tcfg.learning_rate,
+            weight_decay=tcfg.weight_decay,
+            betas=(0.9, 0.95),
+            fused=True if device.type == "cuda" else False,
+        )
 
     # Scaler for mixed precision (not needed for bf16 but harmless)
     scaler = torch.amp.GradScaler("cuda") if dtype == torch.float16 else None

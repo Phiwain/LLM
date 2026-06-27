@@ -58,6 +58,7 @@ class TrainingConfig:
     seed: int = 42
     use_bf16: bool = True
     use_wandb: bool = False
+    use_8bit_optimizer: bool = False
 
 
 @dataclass
