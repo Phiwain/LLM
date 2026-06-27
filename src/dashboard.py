@@ -461,7 +461,7 @@ class DashboardHandler(SimpleHTTPRequestHandler):
 
 
 def main():
-    port = 8000
+    port = 8888
     server = HTTPServer(("0.0.0.0", port), DashboardHandler)
     print(f"Dashboard running on http://0.0.0.0:{port}")
     print(f"Access via RunPod HTTP proxy on port {port}")
