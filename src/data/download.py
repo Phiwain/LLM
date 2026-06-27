@@ -1,5 +1,6 @@
-"""Download and subsample Wikipedia EN+FR from Hugging Face (open dataset, no auth needed)."""
+"""Download and subsample CulturaX EN+FR from Hugging Face (gated, needs HF_TOKEN)."""
 import sys
+import os
 import argparse
 import random
 from pathlib import Path
@@ -10,7 +11,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 def download_subset(lang: str, n_docs: int, out_dir: Path):
-    """Stream Wikipedia for a given language and save n_docs to a text file."""
+    """Stream CulturaX for a given language and save n_docs to a text file."""
     out_file = out_dir / f"{lang}.txt"
     if out_file.exists():
         with open(out_file, "r") as f:
@@ -19,11 +20,10 @@ def download_subset(lang: str, n_docs: int, out_dir: Path):
             print(f"[{lang}] Already have {existing} docs in {out_file}, skipping.")
             return out_file
 
-    print(f"[{lang}] Streaming Wikipedia, collecting {n_docs} documents...")
-    config = f"20231101.{lang}"
+    print(f"[{lang}] Streaming CulturaX, collecting {n_docs} documents...")
     ds = load_dataset(
-        "wikimedia/wikipedia",
-        config,
+        "uonlp/CulturaX",
+        lang,
         split="train",
         streaming=True,
     )
