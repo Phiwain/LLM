@@ -147,6 +147,7 @@ def train(cfg: Config):
     checkpoints_dir = PROJECT_ROOT / "checkpoints"
     checkpoints_dir.mkdir(exist_ok=True)
     log_file = open(checkpoints_dir / "train_log.txt", "a")
+    live_log_file = open(checkpoints_dir / "live_log.txt", "a")
 
     step = 0
     total_tokens = 0
@@ -205,6 +206,10 @@ def train(cfg: Config):
             pbar.set_postfix_str(
                 f"loss {avg_loss:.4f} | aux {avg_aux:.4f} | lr {lr:.2e} | tok/s {tps:.0f}"
             )
+            live_log_file.write(
+                f"{step} | loss {avg_loss:.4f} | aux {avg_aux:.4f} | lr {lr:.2e} | tok/s {tps:.0f}\n"
+            )
+            live_log_file.flush()
             if use_wandb:
                 wandb.log({
                     "train/loss": avg_loss,
@@ -241,6 +246,7 @@ def train(cfg: Config):
     torch.save({"model": model.state_dict(), "step": step}, str(final))
     print(f"Final model: {final}")
     log_file.close()
+    live_log_file.close()
 
     if use_wandb:
         wandb.finish()

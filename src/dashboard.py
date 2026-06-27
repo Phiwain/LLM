@@ -15,9 +15,9 @@ from urllib.parse import urlparse
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 LOG_FILE = PROJECT_ROOT / "checkpoints" / "train_log.txt"
-TRAIN_LOG = Path("/root/train.log")
+LIVE_LOG_FILE = PROJECT_ROOT / "checkpoints" / "live_log.txt"
 CHECKPOINTS_DIR = PROJECT_ROOT / "checkpoints"
-GPU_LOG = Path("/tmp/gpu_stats.log")
+PIPELINE_LOG = PROJECT_ROOT / "pipeline.log"
 
 
 # ---------- Stats collection ----------
@@ -48,23 +48,24 @@ def parse_train_log():
 
 
 def parse_live_log():
-    """Parse /root/train.log for the latest training progress (loss, aux, lr, tok/s, step)."""
+    """Parse live_log.txt for the latest training progress (loss, aux, lr, tok/s, step)."""
     entries = []
-    if not TRAIN_LOG.exists():
+    if not LIVE_LOG_FILE.exists():
         return entries
     pattern = re.compile(
-        r"(\d+)/50000.*?loss ([\d.]+).*?aux ([\d.]+).*?lr ([\d.e-]+).*?tok/s ([\d.]+)"
+        r"(\d+) \| loss ([\d.]+) \| aux ([\d.]+) \| lr ([\d.e+-]+) \| tok/s ([\d.]+)"
     )
-    with open(TRAIN_LOG, "r", errors="replace") as f:
-        data = f.read()
-    for m in pattern.finditer(data):
-        entries.append({
-            "step": int(m.group(1)),
-            "loss": float(m.group(2)),
-            "aux": float(m.group(3)),
-            "lr": m.group(4),
-            "tok_s": float(m.group(5)),
-        })
+    with open(LIVE_LOG_FILE, "r", errors="replace") as f:
+        for line in f:
+            m = pattern.search(line)
+            if m:
+                entries.append({
+                    "step": int(m.group(1)),
+                    "loss": float(m.group(2)),
+                    "aux": float(m.group(3)),
+                    "lr": m.group(4),
+                    "tok_s": float(m.group(5)),
+                })
     return entries
 
 
@@ -444,10 +445,10 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             self.end_headers()
 
     def _get_log_tail(self):
-        if not TRAIN_LOG.exists():
+        if not PIPELINE_LOG.exists():
             return ""
         try:
-            with open(TRAIN_LOG, "r", errors="replace") as f:
+            with open(PIPELINE_LOG, "r", errors="replace") as f:
                 f.seek(0, 2)
                 size = f.tell()
                 f.seek(max(0, size - 3000))
