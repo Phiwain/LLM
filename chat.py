@@ -53,9 +53,9 @@ def generate(model, sp, prompt, max_tokens=200, temperature=0.8, device="cpu"):
 
 
 def main():
-    checkpoint = PROJECT_ROOT / "checkpoints" / "final.pt"
+    checkpoint = PROJECT_ROOT / "checkpoints" / "checkpoint_021000.pt"
     config = PROJECT_ROOT / "config.yaml"
-    tokenizer = PROJECT_ROOT / "tokenizer" / "bpe_culturax.model"
+    tokenizer = PROJECT_ROOT / "tokenizer" / "bpe.model"
 
     device = "mps" if torch.backends.mps.is_available() else "cpu"
     print(f"Device: {device}")

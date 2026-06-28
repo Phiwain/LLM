@@ -28,7 +28,7 @@ MAX_SEQ_LEN = 1024
 BATCH_SIZE = 8
 GRAD_ACCUM = 4
 LR = 3e-5
-MAX_STEPS = 32000
+MAX_STEPS = 10000
 
 
 def format_example(instruction, input_text, response):

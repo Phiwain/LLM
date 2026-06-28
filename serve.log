@@ -1,0 +1,19 @@
+INFO:     Started server process [22236]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+Device: mps
+Chargement du modèle...
+Modèle chargé: 958,950,144 params (step 21000)
+Chargement du tokenizer...
+Tokenizer: vocab=32000
+Serveur prêt sur http://localhost:8080
+INFO:     127.0.0.1:52076 - "GET /v1/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52080 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52087 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52091 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52095 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [22236]

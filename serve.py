@@ -52,7 +52,7 @@ class CompletionRequest(BaseModel):
 
 def load():
     global model, sp, device, cfg
-    checkpoint = PROJECT_ROOT / "checkpoints" / "checkpoint_021000.pt"
+    checkpoint = PROJECT_ROOT / "checkpoints" / "sft_model.pt"
     config_path = PROJECT_ROOT / "config.yaml"
     tokenizer_path = PROJECT_ROOT / "tokenizer" / "bpe.model"
 
@@ -81,7 +81,7 @@ def generate_tokens(prompt, max_tokens=200, temperature=0.8):
     max_seq_len = cfg.model.max_seq_len
 
     ids = [bos_id] + sp.encode(prompt)
-    prev_len = 0
+    prev_len = len(sp.decode(ids[1:]))
     for _ in range(max_tokens):
         ctx = ids[-max_seq_len:]
         tokens = torch.tensor([ctx], dtype=torch.long, device=device)
