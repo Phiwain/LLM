@@ -54,28 +54,23 @@ def prepare_dataset(sp):
             ))
             examples.append({"ids": ids, "prompt_len": prompt_len})
 
-    # FR: French Instruct (276k conversations)
-    print("Chargement French Instruct (FR)...")
+    # FR: French Alpaca 55k
+    print("Chargement French Alpaca 55k (FR)...")
     try:
-        ds_fr = load_dataset("angeluriot/french_instruct", split="train", streaming=True)
-        max_fr = 50000
+        ds_fr = load_dataset("jpacifico/French-Alpaca-dataset-Instruct-55K", split="train")
         count = 0
         for row in ds_fr:
-            conv = row.get("conversation", [])
-            if len(conv) >= 2 and conv[0].get("role") == "user" and conv[1].get("role") == "assistant":
-                user_text = conv[0]["text"]
-                asst_text = conv[1]["text"]
-                text = f"User: {user_text}\nAssistant: {asst_text}{chr(EOS_ID)}"
-                ids = sp.encode(text)
-                if len(ids) <= MAX_SEQ_LEN:
-                    prompt_len = len(sp.encode(f"User: {user_text}\nAssistant: "))
-                    examples.append({"ids": ids, "prompt_len": prompt_len})
-                    count += 1
-                    if count >= max_fr:
-                        break
+            text = format_example(row["instruction"], row.get("input", ""), row["output"])
+            ids = sp.encode(text)
+            if len(ids) <= MAX_SEQ_LEN:
+                prompt_len = len(sp.encode(
+                    f"User: {row['instruction']}\n" + (f"{row['input']}\n" if row.get("input") else "") + "Assistant: "
+                ))
+                examples.append({"ids": ids, "prompt_len": prompt_len})
+                count += 1
         print(f"  {count} exemples FR ajoutés")
     except Exception as e:
-        print(f"  French Instruct indisponible: {e}")
+        print(f"  French Alpaca 55k indisponible: {e}")
     except:
         print("  Vigogne non disponible, fallback Alpaca uniquement")
 
