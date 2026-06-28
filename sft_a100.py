@@ -89,9 +89,11 @@ def collate(batch):
         ids = ex["ids"]
         padding = max_len - len(ids)
         input_ids.append(ids + [pad_id] * padding)
+        # Shift labels: predict token at position i+1 from position i
         label = ids.copy()
-        for j in range(ex["prompt_len"]):
+        for j in range(ex["prompt_len"] - 1):
             label[j] = -100
+        label[-1] = -100  # last token has no target
         labels.append(label + [-100] * padding)
 
     return {
