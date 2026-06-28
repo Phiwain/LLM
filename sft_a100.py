@@ -54,30 +54,28 @@ def prepare_dataset(sp):
             ))
             examples.append({"ids": ids, "prompt_len": prompt_len})
 
-    # FR: OpenAssistant OASST1
-    print("Chargement OASST1 (FR)...")
+    # FR: French Instruct (276k conversations)
+    print("Chargement French Instruct (FR)...")
     try:
-        ds_fr = load_dataset("OpenAssistant/oasst1", split="train", streaming=True)
-        # Build conversation trees from messages
-        messages = {}
+        ds_fr = load_dataset("angeluriot/french_instruct", split="train", streaming=True)
+        max_fr = 50000
+        count = 0
         for row in ds_fr:
-            if row["lang"] == "fr":
-                messages[row["message_id"]] = row
-
-        # Pair prompter → assistant
-        for mid, msg in messages.items():
-            parent_id = msg.get("parent_id")
-            if parent_id and parent_id in messages:
-                parent = messages[parent_id]
-                if parent["role"] == "prompter" and msg["role"] == "assistant":
-                    text = f"User: {parent['text']}\nAssistant: {msg['text']}{chr(EOS_ID)}"
-                    ids = sp.encode(text)
-                    if len(ids) <= MAX_SEQ_LEN:
-                        prompt_len = len(sp.encode(f"User: {parent['text']}\nAssistant: "))
-                        examples.append({"ids": ids, "prompt_len": prompt_len})
-        print(f"  {len(examples)} exemples FR ajoutés")
+            conv = row.get("conversation", [])
+            if len(conv) >= 2 and conv[0].get("role") == "user" and conv[1].get("role") == "assistant":
+                user_text = conv[0]["text"]
+                asst_text = conv[1]["text"]
+                text = f"User: {user_text}\nAssistant: {asst_text}{chr(EOS_ID)}"
+                ids = sp.encode(text)
+                if len(ids) <= MAX_SEQ_LEN:
+                    prompt_len = len(sp.encode(f"User: {user_text}\nAssistant: "))
+                    examples.append({"ids": ids, "prompt_len": prompt_len})
+                    count += 1
+                    if count >= max_fr:
+                        break
+        print(f"  {count} exemples FR ajoutés")
     except Exception as e:
-        print(f"  OASST1 indisponible: {e}")
+        print(f"  French Instruct indisponible: {e}")
     except:
         print("  Vigogne non disponible, fallback Alpaca uniquement")
 
