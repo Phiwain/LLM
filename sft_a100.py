@@ -54,18 +54,30 @@ def prepare_dataset(sp):
             ))
             examples.append({"ids": ids, "prompt_len": prompt_len})
 
-    # FR: Vigogne
-    print("Chargement Vigogne (FR)...")
+    # FR: OpenAssistant OASST1
+    print("Chargement OASST1 (FR)...")
     try:
-        ds_fr = load_dataset("bofenghuang/vigogne", split="train")
+        ds_fr = load_dataset("OpenAssistant/oasst1", split="train", streaming=True)
+        # Build conversation trees from messages
+        messages = {}
         for row in ds_fr:
-            text = format_example(row["instruction"], row.get("input", ""), row["output"])
-            ids = sp.encode(text)
-            if len(ids) <= MAX_SEQ_LEN:
-                prompt_len = len(sp.encode(
-                    f"User: {row['instruction']}\n" + (f"{row['input']}\n" if row.get("input") else "") + "Assistant: "
-                ))
-                examples.append({"ids": ids, "prompt_len": prompt_len})
+            if row["lang"] == "fr":
+                messages[row["message_id"]] = row
+
+        # Pair prompter → assistant
+        for mid, msg in messages.items():
+            parent_id = msg.get("parent_id")
+            if parent_id and parent_id in messages:
+                parent = messages[parent_id]
+                if parent["role"] == "prompter" and msg["role"] == "assistant":
+                    text = f"User: {parent['text']}\nAssistant: {msg['text']}{chr(EOS_ID)}"
+                    ids = sp.encode(text)
+                    if len(ids) <= MAX_SEQ_LEN:
+                        prompt_len = len(sp.encode(f"User: {parent['text']}\nAssistant: "))
+                        examples.append({"ids": ids, "prompt_len": prompt_len})
+        print(f"  {len(examples)} exemples FR ajoutés")
+    except Exception as e:
+        print(f"  OASST1 indisponible: {e}")
     except:
         print("  Vigogne non disponible, fallback Alpaca uniquement")
 
